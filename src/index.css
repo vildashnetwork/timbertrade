@@ -2,95 +2,116 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* 
+  Wood Import/Export Platform Design System
+  ==========================================
+  A warm, professional theme inspired by natural timber.
+  All colors in HSL format.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core Wood Palette */
+    --background: 43 56% 95%;
+    --foreground: 25 40% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 40 33% 98%;
+    --card-foreground: 25 40% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 40 33% 98%;
+    --popover-foreground: 25 40% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Deep Mahogany - Primary */
+    --primary: 25 40% 21%;
+    --primary-foreground: 43 56% 95%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Warm Sienna - Secondary */
+    --secondary: 19 57% 40%;
+    --secondary-foreground: 43 56% 95%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Soft Beige - Muted */
+    --muted: 43 30% 88%;
+    --muted-foreground: 25 20% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Forest Green - Accent */
+    --accent: 142 45% 35%;
+    --accent-foreground: 43 56% 95%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive */
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 43 56% 95%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and Inputs */
+    --border: 30 25% 80%;
+    --input: 30 25% 85%;
+    --ring: 19 57% 40%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar - Dark Wood */
+    --sidebar-background: 25 40% 15%;
+    --sidebar-foreground: 43 30% 90%;
+    --sidebar-primary: 19 57% 50%;
+    --sidebar-primary-foreground: 43 56% 95%;
+    --sidebar-accent: 25 35% 25%;
+    --sidebar-accent-foreground: 43 30% 90%;
+    --sidebar-border: 25 30% 25%;
+    --sidebar-ring: 19 57% 50%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Status Colors */
+    --status-pending: 45 93% 47%;
+    --status-approved: 142 45% 35%;
+    --status-suspended: 0 65% 50%;
+    --status-shipped: 210 70% 50%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Wood Gradients */
+    --gradient-wood: linear-gradient(135deg, hsl(25 40% 21%) 0%, hsl(19 57% 40%) 100%);
+    --gradient-timber: linear-gradient(180deg, hsl(43 56% 95%) 0%, hsl(43 30% 88%) 100%);
+    --gradient-forest: linear-gradient(135deg, hsl(142 45% 35%) 0%, hsl(142 40% 25%) 100%);
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Shadows */
+    --shadow-wood: 0 4px 20px -4px hsl(25 40% 21% / 0.15);
+    --shadow-card: 0 2px 8px -2px hsl(25 40% 21% / 0.1);
+    --shadow-elevated: 0 8px 30px -8px hsl(25 40% 21% / 0.2);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 25 40% 10%;
+    --foreground: 43 30% 90%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 25 35% 15%;
+    --card-foreground: 43 30% 90%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 25 35% 15%;
+    --popover-foreground: 43 30% 90%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 43 56% 95%;
+    --primary-foreground: 25 40% 15%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 19 57% 50%;
+    --secondary-foreground: 43 56% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 25 25% 20%;
+    --muted-foreground: 43 20% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 142 45% 40%;
+    --accent-foreground: 43 56% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 43 56% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 25 25% 25%;
+    --input: 25 25% 25%;
+    --ring: 19 57% 50%;
+
+    --sidebar-background: 25 40% 8%;
+    --sidebar-foreground: 43 30% 90%;
+    --sidebar-primary: 19 57% 50%;
+    --sidebar-primary-foreground: 43 56% 95%;
+    --sidebar-accent: 25 35% 18%;
+    --sidebar-accent-foreground: 43 30% 90%;
+    --sidebar-border: 25 30% 18%;
+    --sidebar-ring: 19 57% 50%;
   }
 }
 
@@ -101,5 +122,99 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Wood-themed button variants */
+  .btn-wood {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .btn-wood:hover {
+    box-shadow: var(--shadow-wood);
+    transform: translateY(-1px);
+  }
+
+  .btn-sienna {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .btn-sienna:hover {
+    box-shadow: var(--shadow-wood);
+    transform: translateY(-1px);
+  }
+
+  /* Card styles */
+  .card-timber {
+    @apply bg-card rounded-lg border border-border;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .card-timber:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-2px);
+  }
+
+  /* Status badges */
+  .badge-pending {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+  }
+
+  .badge-approved {
+    @apply bg-green-100 text-green-800 border-green-200;
+  }
+
+  .badge-suspended {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+
+  .badge-shipped {
+    @apply bg-blue-100 text-blue-800 border-blue-200;
+  }
+
+  /* Skeleton loader */
+  .skeleton-wood {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Gradient backgrounds */
+  .bg-gradient-wood {
+    background: var(--gradient-wood);
+  }
+
+  .bg-gradient-timber {
+    background: var(--gradient-timber);
+  }
+
+  .bg-gradient-forest {
+    background: var(--gradient-forest);
+  }
+}
+
+@layer utilities {
+  .shadow-wood {
+    box-shadow: var(--shadow-wood);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
   }
 }
