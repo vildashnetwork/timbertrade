@@ -10,6 +10,7 @@
  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
  import { useAuthStore } from '@/stores/authStore';
  import { toast } from 'sonner';
+ import  axios from "axios"
  
  const loginSchema = z.object({
    email: z.string().email('Invalid email address'),
