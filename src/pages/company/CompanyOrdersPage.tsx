@@ -41,7 +41,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
-import { useCartStore } from '@/stores/useCartStore';
+import { useCartStore } from '@/stores/usecartStore.ts';
 import { toast } from 'sonner';
 import type { Order, OrderStatus } from '@/types';
 

@@ -37,7 +37,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { CatalogGridSkeleton } from '@/components/shared/LoadingSkeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useWoodStore } from '@/stores/useWoodStore';
-import { useCartStore } from '@/stores/useCartStore';
+import { useCartStore } from '@/stores/usecartStore.ts';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useDebounce } from '@/hooks/useDebounce';
 import { toast } from 'sonner';
@@ -55,10 +55,10 @@ export default function CatalogPage() {
   const woodItems = woodStore.woodItems || [];
   const isLoading = woodStore.isLoading || false;
   const error = woodStore.error || null;
-  const fetchWoodItems = woodStore.fetchWoodItems || (async () => {});
+  const fetchWoodItems = woodStore.fetchWoodItems || (async () => { });
   const cartItems = cartStore.items || [];
-  const addItem = cartStore.addItem || (() => {});
-  const updateCartQuantity = cartStore.updateQuantity || (() => {});
+  const addItem = cartStore.addItem || (() => { });
+  const updateCartQuantity = cartStore.updateQuantity || (() => { });
 
   // Local state
   const [searchQuery, setSearchQuery] = useState('');
@@ -122,13 +122,13 @@ export default function CatalogPage() {
     setQuantities((prev) => {
       const currentQty = prev[id] || 1;
       const newQty = Math.max(1, Math.min(currentQty + delta, 100));
-      
+
       // Update cart if item is already in cart
       const cartItem = cartItems?.find(ci => ci?.woodItem?.id === id);
       if (cartItem && updateCartQuantity) {
         updateCartQuantity(id, newQty);
       }
-      
+
       return {
         ...prev,
         [id]: newQty,
@@ -154,7 +154,7 @@ export default function CatalogPage() {
     }
 
     const quantity = quantities[item.id] || 1;
-    
+
     // Check if enough stock
     if (quantity > (item.stockLevel || 0)) {
       toast.error('Insufficient Stock', {
@@ -190,9 +190,9 @@ export default function CatalogPage() {
   // Sort items
   const sortedItems = useMemo(() => {
     if (!woodItems || woodItems.length === 0) return [];
-    
+
     let sorted = [...woodItems].filter(item => item !== null);
-    
+
     switch (sortBy) {
       case 'name-asc':
         sorted.sort((a, b) => (a.species || '').localeCompare(b.species || ''));
@@ -210,7 +210,7 @@ export default function CatalogPage() {
         sorted.sort((a, b) => (b.stockLevel || 0) - (a.stockLevel || 0));
         break;
     }
-    
+
     return sorted;
   }, [woodItems, sortBy]);
 
@@ -218,7 +218,7 @@ export default function CatalogPage() {
   const filteredItems = useMemo(() => {
     return sortedItems.filter((item) => {
       if (!item) return false;
-      
+
       // Apply species filter
       if (speciesFilter !== 'all' && item.species !== speciesFilter) {
         return false;
@@ -275,7 +275,7 @@ export default function CatalogPage() {
           title="Wood Catalog"
           description="Browse our premium timber selection"
         />
-        
+
         {/* View Toggle & Sort (Desktop) */}
         <div className="hidden sm:flex items-center gap-2">
           <DropdownMenu>
@@ -303,7 +303,7 @@ export default function CatalogPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           <div className="flex items-center border rounded-lg">
             <Button
               variant="ghost"
@@ -332,8 +332,8 @@ export default function CatalogPage() {
           <h5 className="font-medium text-yellow-800 mb-1">Approval Required</h5>
           <AlertDescription className="text-yellow-700">
             Your company must be approved before you can add items to cart.
-            <Button 
-              variant="link" 
+            <Button
+              variant="link"
               className="text-yellow-800 font-medium px-1 h-auto"
               onClick={() => navigate('/company/kyb-pending')}
             >
@@ -432,7 +432,7 @@ export default function CatalogPage() {
                   <SelectItem value="stock-desc">Stock (High to Low)</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <div className="flex items-center gap-2">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -470,16 +470,15 @@ export default function CatalogPage() {
       {isLoading ? (
         <CatalogGridSkeleton count={6} />
       ) : (
-        <div className={viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+        <div className={viewMode === 'grid'
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           : "space-y-4"
         }>
           {filteredItems.map((item) => (
-            <Card 
-              key={item.id} 
-              className={`hover:shadow-lg transition-all duration-300 overflow-hidden border-2 hover:border-primary/20 ${
-                viewMode === 'list' ? 'flex' : ''
-              }`}
+            <Card
+              key={item.id}
+              className={`hover:shadow-lg transition-all duration-300 overflow-hidden border-2 hover:border-primary/20 ${viewMode === 'list' ? 'flex' : ''
+                }`}
             >
               {/* Image Section */}
               <div className={viewMode === 'list' ? 'w-48 h-full' : 'h-48'}>
@@ -579,11 +578,10 @@ export default function CatalogPage() {
                     <Button
                       onClick={() => handleAddToCart(item)}
                       disabled={item.status === 'OUT_OF_STOCK' || !isApproved}
-                      className={`flex-1 touch-target ${
-                        isInCart(item.id) 
-                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      className={`flex-1 touch-target ${isInCart(item.id)
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
                           : 'bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white'
-                      }`}
+                        }`}
                     >
                       {isInCart(item.id) ? (
                         <>
@@ -640,7 +638,7 @@ export default function CatalogPage() {
             <div>
               <p className="text-sm text-muted-foreground">Cart Total</p>
               <p className="font-bold text-lg">
-                XAF{" "+ cartItems.reduce((sum, item) => {
+                XAF{" " + cartItems.reduce((sum, item) => {
                   const price = item?.woodItem?.price || 0;
                   const quantity = item?.quantity || 0;
                   return sum + (price * quantity);
