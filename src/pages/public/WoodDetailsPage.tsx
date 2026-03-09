@@ -34,7 +34,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useWoodStore } from '@/stores/useWoodStore';
-import { useCartStore } from '@/stores/useCartStore'; // Fixed import (was usecartStore)
+import { useCartStore } from '@/stores/usecartStore.ts';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -379,8 +379,8 @@ export default function WoodDetailsPage() {
                                     <button
                                         key={index}
                                         className={`w-20 h-20 rounded-lg border-2 overflow-hidden flex-shrink-0 ${index === currentImageIndex
-                                                ? 'border-primary'
-                                                : 'border-transparent hover:border-gray-300'
+                                            ? 'border-primary'
+                                            : 'border-transparent hover:border-gray-300'
                                             }`}
                                         onClick={() => setCurrentImageIndex(index)}
                                     >
