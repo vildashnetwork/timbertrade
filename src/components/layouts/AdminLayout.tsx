@@ -27,8 +27,10 @@ import { useAuthStore } from '@/stores/useAuthStore';
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: Package, label: 'Inventory', path: '/admin/inventory' },
+
   { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
   { icon: Building2, label: 'KYB Management', path: '/admin/kyb' },
+  { icon: Building2, label: 'Subscription', path: '/admin/subscriptions' },
 ];
 
 export function AdminLayout() {

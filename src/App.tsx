@@ -24,6 +24,7 @@ import InventoryPage from "./pages/admin/InventoryPage";
 import OrdersPage from "./pages/admin/OrdersPage";
 import KYBPage from "./pages/admin/KYBPage";
 import SuperAdminProfile from "./pages/admin/SuperAdminProfile"
+import SubscriptionPage from "./pages/admin/SubscriptionPage";
 
 // Company Pages
 import CompanyDashboard from "./pages/company/CompanyDashboard";
@@ -34,16 +35,13 @@ import EditProfilePage from "./pages/company/Profile";
 import KYBPendingPage from "./pages/public/KYBPendingPage";
 import OrderDetailsPage from './pages/company/OrderDetailsPage';
 
-
-// resetpass
-
+// Reset Password
 import ForgotPassword from './pages/public/ForgotPassword';
 import VerifyOTP from './pages/public/VerifyOTP';
 import ResetPassword from './pages/public/ResetPassword';
 
-
 // Protected Route
-import { ProtectedRoute, PublicRoute } from "./components/shared/ProtectedRoute";
+import { ProtectedRoute, PublicRoute, SubscriptionRoute } from "./components/shared/ProtectedRoute";
 import { useAuthStore, useAuthInitializer } from "./stores/useAuthStore";
 
 const queryClient = new QueryClient({
@@ -65,6 +63,64 @@ const AppLoader = () => (
     </div>
   </div>
 );
+
+// Subscription Check Component
+const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        const token = localStorage.getItem('auth-token');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        // Check subscription status
+        const response = await fetch('/api/payments/subscription', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const isActive = data.subscription?.isActive || false;
+          setHasAccess(isActive);
+
+          if (!isActive) {
+            navigate('/admin/subscriptions');
+          }
+        } else {
+          setHasAccess(false);
+          navigate('/admin/subscriptions');
+        }
+      } catch (error) {
+        console.error('Subscription check failed:', error);
+        setHasAccess(false);
+        navigate('/admin/subscriptions');
+      }
+    };
+
+    checkSubscription();
+  }, [navigate]);
+
+  if (hasAccess === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verifying subscription...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return hasAccess ? <>{children}</> : null;
+};
 
 const App = () => {
   const { initialize, isLoading } = useAuthInitializer();
@@ -92,11 +148,9 @@ const App = () => {
             {/* Public Routes */}
             <Route path="/" element={<PublicCatalog />} />
             <Route path="/woods/:id" element={<WoodDetailsPage />} />
-
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-
 
             <Route path="/login" element={
               <PublicRoute>
@@ -109,7 +163,7 @@ const App = () => {
               </PublicRoute>
             } />
 
-            {/* Admin Routes */}
+            {/* Admin Routes - Subscription page is accessible without payment */}
             <Route
               path="/admin"
               element={
@@ -119,15 +173,39 @@ const App = () => {
               }
             >
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="orders" element={<OrdersPage />} />
-              <Route path="kyb" element={<KYBPage />} />
-              <Route path="profile" element={<SuperAdminProfile />} />
 
+              {/* Subscription page - ALWAYS accessible to super admins (no payment required) */}
+              <Route path="subscriptions" element={<SubscriptionPage />} />
+
+              {/* All other admin routes require active subscription */}
+              <Route path="dashboard" element={
+                <SubscriptionGuard>
+                  <AdminDashboard />
+                </SubscriptionGuard>
+              } />
+              <Route path="inventory" element={
+                <SubscriptionGuard>
+                  <InventoryPage />
+                </SubscriptionGuard>
+              } />
+              <Route path="orders" element={
+                <SubscriptionGuard>
+                  <OrdersPage />
+                </SubscriptionGuard>
+              } />
+              <Route path="kyb" element={
+                <SubscriptionGuard>
+                  <KYBPage />
+                </SubscriptionGuard>
+              } />
+              <Route path="profile" element={
+                <SubscriptionGuard>
+                  <SuperAdminProfile />
+                </SubscriptionGuard>
+              } />
             </Route>
 
-            {/* Company Routes - All company routes in one group */}
+            {/* Company Routes - No subscription required */}
             <Route
               path="/company"
               element={
@@ -205,6 +283,25 @@ const App = () => {
                     className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
                   >
                     Return Home
+                  </button>
+                </div>
+              </div>
+            } />
+
+            {/* Subscription Required Page */}
+            <Route path="/subscription-required" element={
+              <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-background to-secondary-50">
+                <div className="text-center max-w-md mx-auto p-8">
+                  <h1 className="text-6xl font-bold text-yellow-600 mb-4">⚠️</h1>
+                  <h2 className="text-2xl font-semibold mb-4">Subscription Required</h2>
+                  <p className="text-gray-600 mb-8">
+                    You need an active subscription to access this page. Please make a payment to continue.
+                  </p>
+                  <button
+                    onClick={() => window.location.href = '/admin/subscriptions'}
+                    className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  >
+                    Go to Subscriptions
                   </button>
                 </div>
               </div>
