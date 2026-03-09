@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useCartStore } from '@/stores/useCartStore';
+import { useCartStore } from '@/stores/usecartStore.ts';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOrderStore } from '@/stores/useOrderStore';
 import { toast } from 'sonner';
