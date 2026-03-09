@@ -239,8 +239,6 @@
 
 
 
-
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -286,6 +284,7 @@ import ResetPassword from './pages/public/ResetPassword';
 // Protected Route
 import { ProtectedRoute, PublicRoute } from "./components/shared/ProtectedRoute";
 import { useAuthStore, useAuthInitializer } from "./stores/useAuthStore";
+import axios from 'axios';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -318,6 +317,7 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
     const checkSubscription = async () => {
       // If not super admin, always grant access
       if (user?.role !== 'SUPER_ADMIN') {
+        console.log('User is not super admin, granting access');
         setHasAccess(true);
         setIsLoading(false);
         return;
@@ -326,28 +326,33 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
       try {
         const token = localStorage.getItem('auth-token');
         if (!token) {
+          console.log('No token found, redirecting to login');
           navigate('/login');
           return;
         }
 
-        console.log('Checking subscription status...');
+        console.log('Checking subscription status for super admin:', user.email);
 
+        // Make API call to check subscription
         const response = await fetch('/api/payments/subscription', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         });
+
+        console.log('Subscription response status:', response.status);
 
         // Check if response is OK and is JSON
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
           console.error('Received non-JSON response. Status:', response.status);
           const text = await response.text();
-          console.error('Response text:', text.substring(0, 200));
+          console.error('Response text (first 200 chars):', text.substring(0, 200));
 
-          // If we get a 404, the endpoint might not exist yet
+          // If endpoint doesn't exist, grant temporary access
           if (response.status === 404) {
             console.log('Subscription endpoint not found - granting temporary access');
             setHasAccess(true);
@@ -355,15 +360,24 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
             return;
           }
 
-          throw new Error('Invalid response format');
+          throw new Error('Invalid response format from server');
         }
 
         const data = await response.json();
-        console.log('Subscription check response:', data);
+        console.log('Subscription data received:', data);
 
         if (data.success) {
+          // Verify that the subscription belongs to the current admin
+          if (data.subscription?.adminEmail && data.subscription.adminEmail !== user.email) {
+            console.warn('Subscription email mismatch:', {
+              subscriptionEmail: data.subscription.adminEmail,
+              userEmail: user.email
+            });
+          }
+
           const isActive = data.subscription?.isActive || false;
-          console.log('Subscription active:', isActive);
+          console.log('Subscription active status:', isActive);
+
           setHasAccess(isActive);
 
           if (!isActive) {
@@ -371,8 +385,8 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
             navigate('/admin/subscriptions');
           }
         } else {
-          console.log('Subscription check failed, granting temporary access');
-          setHasAccess(true);
+          console.log('Subscription check failed in response');
+          setHasAccess(true); // Grant access on API failure
         }
       } catch (error) {
         console.error('Subscription check error:', error);
@@ -561,25 +575,6 @@ const App = () => {
                     className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
                   >
                     Return Home
-                  </button>
-                </div>
-              </div>
-            } />
-
-            {/* Subscription Required Page */}
-            <Route path="/subscription-required" element={
-              <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-                <div className="text-center max-w-md mx-auto p-8">
-                  <h1 className="text-6xl font-bold text-yellow-600 mb-4">⚠️</h1>
-                  <h2 className="text-2xl font-semibold mb-4">Subscription Required</h2>
-                  <p className="text-gray-600 mb-8">
-                    You need an active subscription to access this page. Please make a payment to continue.
-                  </p>
-                  <button
-                    onClick={() => window.location.href = '/admin/subscriptions'}
-                    className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
-                  >
-                    Go to Subscriptions
                   </button>
                 </div>
               </div>
