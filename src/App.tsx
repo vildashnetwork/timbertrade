@@ -241,12 +241,11 @@
 
 
 
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom"; // Added useNavigate here
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import NotFound from "./pages/NotFound";
 
@@ -285,7 +284,7 @@ import VerifyOTP from './pages/public/VerifyOTP';
 import ResetPassword from './pages/public/ResetPassword';
 
 // Protected Route
-import { ProtectedRoute, PublicRoute } from "./components/shared/ProtectedRoute"; // Removed SubscriptionRoute as it's not used
+import { ProtectedRoute, PublicRoute } from "./components/shared/ProtectedRoute";
 import { useAuthStore, useAuthInitializer } from "./stores/useAuthStore";
 
 const queryClient = new QueryClient({
@@ -311,10 +310,19 @@ const AppLoader = () => (
 // Subscription Check Component
 const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     const checkSubscription = async () => {
+      // If not super admin, always grant access
+      if (user?.role !== 'SUPER_ADMIN') {
+        setHasAccess(true);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const token = localStorage.getItem('auth-token');
         if (!token) {
@@ -322,37 +330,63 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Check subscription status
+        console.log('Checking subscription status...');
+
         const response = await fetch('/api/payments/subscription', {
+          method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
         });
 
+        // Check if response is OK and is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Received non-JSON response. Status:', response.status);
+          const text = await response.text();
+          console.error('Response text:', text.substring(0, 200));
+
+          // If we get a 404, the endpoint might not exist yet
+          if (response.status === 404) {
+            console.log('Subscription endpoint not found - granting temporary access');
+            setHasAccess(true);
+            setIsLoading(false);
+            return;
+          }
+
+          throw new Error('Invalid response format');
+        }
+
         const data = await response.json();
+        console.log('Subscription check response:', data);
 
         if (data.success) {
           const isActive = data.subscription?.isActive || false;
+          console.log('Subscription active:', isActive);
           setHasAccess(isActive);
 
           if (!isActive) {
+            console.log('Subscription inactive, redirecting to subscriptions page');
             navigate('/admin/subscriptions');
           }
         } else {
-          setHasAccess(false);
-          navigate('/admin/subscriptions');
+          console.log('Subscription check failed, granting temporary access');
+          setHasAccess(true);
         }
       } catch (error) {
-        console.error('Subscription check failed:', error);
-        setHasAccess(false);
-        navigate('/admin/subscriptions');
+        console.error('Subscription check error:', error);
+        // On error, grant access to prevent locking users out
+        setHasAccess(true);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkSubscription();
-  }, [navigate]);
+  }, [navigate, user]);
 
-  if (hasAccess === null) {
+  if (isLoading || hasAccess === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -367,7 +401,7 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
-  const { initialize, isLoading } = useAuthInitializer();
+  const { initialize, isLoading: authLoading } = useAuthInitializer();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -378,7 +412,7 @@ const App = () => {
     initApp();
   }, [initialize]);
 
-  if (!isInitialized || isLoading) {
+  if (!isInitialized || authLoading) {
     return <AppLoader />;
   }
 
@@ -407,7 +441,7 @@ const App = () => {
               </PublicRoute>
             } />
 
-            {/* Admin Routes - Subscription page is accessible without payment */}
+            {/* Admin Routes */}
             <Route
               path="/admin"
               element={
