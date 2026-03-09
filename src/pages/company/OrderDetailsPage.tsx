@@ -55,7 +55,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useOrderStore } from '@/stores/useOrderStore';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useCartStore } from '@/stores/useCartStore';
+import { useCartStore } from '@/stores/usecartStore.ts';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
@@ -195,12 +195,12 @@ export default function OrderDetailsPage() {
         // Add company logo/header
         doc.setFillColor(34, 197, 94); // Primary green color
         doc.rect(0, 0, pageWidth, 40, 'F');
-        
+
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
         doc.text('TIMBERTRADE', margin, 25);
-        
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text('Premium Timber Export', margin, 32);
@@ -224,7 +224,7 @@ export default function OrderDetailsPage() {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('FROM:', margin, yPos);
-        
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         yPos += 7;
@@ -241,7 +241,7 @@ export default function OrderDetailsPage() {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('BILL TO:', pageWidth / 2, yPos);
-        
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         yPos += 7;
@@ -256,7 +256,7 @@ export default function OrderDetailsPage() {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('ORDER INFORMATION', margin, yPos);
-        
+
         yPos += 7;
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
@@ -288,7 +288,7 @@ export default function OrderDetailsPage() {
                 `XAF ${subtotal.toLocaleString()}`
             ]],
             theme: 'grid',
-            headStyles: { 
+            headStyles: {
                 fillColor: [34, 197, 94],
                 textColor: [255, 255, 255],
                 fontStyle: 'bold'
@@ -308,14 +308,14 @@ export default function OrderDetailsPage() {
 
         // Summary
         const finalY = (doc as any).lastAutoTable.finalY + 10;
-        
+
         doc.setFontSize(10);
         doc.text('Shipping:', pageWidth - margin - 60, finalY);
         doc.text(shipping === 0 ? 'Free' : `XAF ${shipping}`, pageWidth - margin, finalY, { align: 'right' });
-        
+
         doc.text('Tax (19% VAT):', pageWidth - margin - 60, finalY + 7);
         doc.text(`XAF ${tax.toLocaleString(undefined, { maximumFractionDigits: 2 })}`, pageWidth - margin, finalY + 7, { align: 'right' });
-        
+
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('TOTAL:', pageWidth - margin - 60, finalY + 17);
@@ -337,19 +337,19 @@ export default function OrderDetailsPage() {
         if (!order) return;
 
         const { subtotal, shipping, tax, total } = calculateTotals();
-        
+
         // Create CSV content
         let csvContent = "Order Invoice\n";
         csvContent += `Order Number,${order.orderNumber}\n`;
         csvContent += `Order Date,${format(new Date(order.createdAt), 'PPP')}\n`;
         csvContent += `Status,${order.status}\n\n`;
-        
+
         csvContent += "Product,Quantity,Unit Price,Total\n";
-        
+
         order.items.forEach(item => {
             csvContent += `${item.woodItem.species},${item.quantity} CBM,XAF ${item.unitPrice},XAF ${item.totalPrice}\n`;
         });
-        
+
         csvContent += `\nSubtotal,,,XAF ${subtotal}\n`;
         csvContent += `Shipping,,,${shipping === 0 ? 'Free' : `XAF ${shipping}`}\n`;
         csvContent += `Tax (19% VAT),,,XAF ${tax.toFixed(2)}\n`;
@@ -362,7 +362,7 @@ export default function OrderDetailsPage() {
         link.download = `Invoice-${order.orderNumber}.csv`;
         link.click();
         URL.revokeObjectURL(link.href);
-        
+
         toast.success('CSV invoice downloaded successfully');
     };
 
@@ -371,7 +371,7 @@ export default function OrderDetailsPage() {
         if (!order) return;
 
         const { subtotal, shipping, tax, total } = calculateTotals();
-        
+
         let htmlContent = `
             <html>
                 <head>
@@ -455,7 +455,7 @@ export default function OrderDetailsPage() {
         link.download = `Invoice-${order.orderNumber}.xls`;
         link.click();
         URL.revokeObjectURL(link.href);
-        
+
         toast.success('Excel invoice downloaded successfully');
     };
 
@@ -525,8 +525,8 @@ export default function OrderDetailsPage() {
                     <AlertDescription>
                         {error || 'Order not found'}
                     </AlertDescription>
-                    <Button 
-                        variant="outline" 
+                    <Button
+                        variant="outline"
                         className="mt-4"
                         onClick={() => navigate('/company/orders')}
                     >
@@ -576,7 +576,7 @@ export default function OrderDetailsPage() {
                         <Loader2 className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                         Refresh
                     </Button>
-                    
+
                     {/* Invoice Download Dropdown */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -629,13 +629,13 @@ export default function OrderDetailsPage() {
                             </div>
                             <Progress value={statusConfig.progress} className="h-2" />
                             <p className="text-sm text-muted-foreground mt-2">
-                                {order.status === 'DELIVERED' 
+                                {order.status === 'DELIVERED'
                                     ? 'Your order has been delivered'
                                     : order.status === 'SHIPPED'
-                                    ? 'Your order is on the way'
-                                    : order.status === 'CANCELLED'
-                                    ? 'This order has been cancelled'
-                                    : 'Your order is being processed'}
+                                        ? 'Your order is on the way'
+                                        : order.status === 'CANCELLED'
+                                            ? 'This order has been cancelled'
+                                            : 'Your order is being processed'}
                             </p>
                         </div>
                     </div>
@@ -651,7 +651,7 @@ export default function OrderDetailsPage() {
                     <div className="relative">
                         {/* Progress Line */}
                         <div className="absolute top-5 left-0 w-full h-0.5 bg-muted">
-                            <div 
+                            <div
                                 className="h-full bg-primary transition-all duration-500"
                                 style={{ width: `${(trackingStep / 4) * 100}%` }}
                             />
@@ -667,11 +667,10 @@ export default function OrderDetailsPage() {
                                 return (
                                     <div key={step.status} className="flex flex-col items-center text-center">
                                         <div
-                                            className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                                                isCompleted
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${isCompleted
                                                     ? 'bg-primary text-white'
                                                     : 'bg-muted text-muted-foreground'
-                                            } ${isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                                                } ${isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                                         >
                                             <StepIcon className="w-5 h-5" />
                                         </div>
@@ -828,8 +827,8 @@ export default function OrderDetailsPage() {
                             </div>
 
                             {order.status === 'SHIPPED' && (
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     className="w-full"
                                     onClick={handleTrackShipment}
                                 >
@@ -919,16 +918,16 @@ export default function OrderDetailsPage() {
                     {/* Action Buttons */}
                     <Card>
                         <CardContent className="p-6 space-y-3">
-                            <Button 
+                            <Button
                                 className="w-full bg-gradient-to-r from-primary to-secondary text-white"
                                 onClick={handleReorder}
                             >
                                 <ShoppingBag className="w-4 h-4 mr-2" />
                                 Reorder Items
                             </Button>
-                            
-                            <Button 
-                                variant="outline" 
+
+                            <Button
+                                variant="outline"
                                 className="w-full"
                                 onClick={handleContactSupport}
                             >
@@ -936,8 +935,8 @@ export default function OrderDetailsPage() {
                                 Contact Support
                             </Button>
 
-                            <Button 
-                                variant="ghost" 
+                            <Button
+                                variant="ghost"
                                 className="w-full"
                                 onClick={() => navigate('/company/orders')}
                             >
