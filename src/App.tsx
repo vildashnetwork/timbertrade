@@ -238,7 +238,6 @@
 
 
 
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -285,6 +284,21 @@ import ResetPassword from './pages/public/ResetPassword';
 import { ProtectedRoute, PublicRoute } from "./components/shared/ProtectedRoute";
 import { useAuthStore, useAuthInitializer } from "./stores/useAuthStore";
 import axios from 'axios';
+
+const API_URL = 'https://franca-backend-ecaz.onrender.com/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth-token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -333,65 +347,43 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
 
         console.log('Checking subscription status for super admin:', user.email);
 
-        // Make API call to check subscription
-        const response = await fetch('/api/payments/subscription', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
+        // Use the same axios instance as SubscriptionPage
+        const response = await api.get('/payments/subscription');
 
-        console.log('Subscription response status:', response.status);
+        console.log('Subscription data received:', response.data);
 
-        // Check if response is OK and is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          console.error('Received non-JSON response. Status:', response.status);
-          const text = await response.text();
-          console.error('Response text (first 200 chars):', text.substring(0, 200));
-
-          // If endpoint doesn't exist, grant temporary access
-          if (response.status === 404) {
-            console.log('Subscription endpoint not found - granting temporary access');
-            setHasAccess(true);
-            setIsLoading(false);
-            return;
-          }
-
-          throw new Error('Invalid response format from server');
-        }
-
-        const data = await response.json();
-        console.log('Subscription data received:', data);
-
-        if (data.success) {
-          // Verify that the subscription belongs to the current admin
-          if (data.subscription?.adminEmail && data.subscription.adminEmail !== user.email) {
-            console.warn('Subscription email mismatch:', {
-              subscriptionEmail: data.subscription.adminEmail,
-              userEmail: user.email
-            });
-          }
-
-          const isActive = data.subscription?.isActive || false;
+        if (response.data.success) {
+          const isActive = response.data.subscription?.isActive || false;
           console.log('Subscription active status:', isActive);
 
           setHasAccess(isActive);
 
           if (!isActive) {
             console.log('Subscription inactive, redirecting to subscriptions page');
+            // Store the intended destination to redirect back after payment
+            sessionStorage.setItem('redirectAfterPayment', window.location.pathname);
             navigate('/admin/subscriptions');
           }
         } else {
           console.log('Subscription check failed in response');
-          setHasAccess(true); // Grant access on API failure
+          // Grant temporary access and show warning
+          setHasAccess(true);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Subscription check error:', error);
-        // On error, grant access to prevent locking users out
-        setHasAccess(true);
+
+        // Handle specific error cases
+        if (error.response?.status === 401) {
+          console.log('Unauthorized, redirecting to login');
+          navigate('/login');
+        } else if (error.response?.status === 404) {
+          console.log('Subscription endpoint not found - granting temporary access');
+          setHasAccess(true);
+        } else {
+          // On other errors, grant access to prevent locking users out
+          console.log('Unknown error, granting temporary access');
+          setHasAccess(true);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -575,6 +567,29 @@ const App = () => {
                     className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
                   >
                     Return Home
+                  </button>
+                </div>
+              </div>
+            } />
+
+            {/* Subscription Required Page */}
+            <Route path="/subscription-required" element={
+              <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-background to-secondary-50">
+                <div className="text-center max-w-md mx-auto p-8">
+                  <h1 className="text-6xl font-bold text-yellow-600 mb-4">⚠️</h1>
+                  <h2 className="text-2xl font-semibold mb-4">Subscription Required</h2>
+                  <p className="text-gray-600 mb-8">
+                    You need an active subscription to access this page. Please make a payment to continue.
+                  </p>
+                  <button
+                    onClick={() => {
+                      // Clear any stored redirect
+                      sessionStorage.removeItem('redirectAfterPayment');
+                      window.location.href = '/admin/subscriptions';
+                    }}
+                    className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  >
+                    Go to Subscriptions
                   </button>
                 </div>
               </div>
